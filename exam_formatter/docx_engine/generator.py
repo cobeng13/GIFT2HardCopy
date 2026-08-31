@@ -23,7 +23,20 @@ def _require_styles(document) -> None:
             raise TemplateContractError(f"Required Word style '{name}' was not found.")
 
 
-def generate_exam(template: Path, output: Path, metadata: dict[str, str], questions: list[Question]) -> None:
+def answer_key_path(output: Path) -> Path:
+    output = Path(output)
+    return output.with_name(f"{output.stem}_ANSWERKEY.txt")
+
+
+def _answer_key_text(questions: list[Question]) -> str:
+    lines = ["ANSWER KEY", ""]
+    for number, question in enumerate(questions, 1):
+        correct_index = next(index for index, choice in enumerate(question.choices) if choice.correct)
+        lines.append(f"{number}. {chr(65 + correct_index)}")
+    return "\n".join(lines) + "\n"
+
+
+def generate_exam(template: Path, output: Path, metadata: dict[str, str], questions: list[Question]) -> Path:
     template = Path(template)
     output = Path(output)
     if not template.is_file():
@@ -32,6 +45,8 @@ def generate_exam(template: Path, output: Path, metadata: dict[str, str], questi
         raise ValueError("Output file must be different from the master template.")
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_name(f".{output.stem}.tmp.docx")
+    key_output = answer_key_path(output)
+    temporary_key = key_output.with_name(f".{key_output.stem}.tmp.txt")
     try:
         shutil.copy2(template, temporary)
         document = Document(temporary)
@@ -60,8 +75,13 @@ def generate_exam(template: Path, output: Path, metadata: dict[str, str], questi
                     _insert_before(placeholder, choice_paragraph)
         placeholder._element.getparent().remove(placeholder._element)
         document.save(temporary)
+        temporary_key.write_text(_answer_key_text(questions), encoding="utf-8")
         temporary.replace(output)
+        temporary_key.replace(key_output)
+        return key_output
     except Exception:
         if temporary.exists():
             temporary.unlink()
+        if temporary_key.exists():
+            temporary_key.unlink()
         raise

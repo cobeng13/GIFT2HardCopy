@@ -1,6 +1,6 @@
 # Exam Formatter
 
-Offline Windows application that converts the supported four-choice GIFT subset into a master-template-derived DOCX exam.
+Offline Windows application that converts the supported four-choice GIFT subset into a master-template-derived DOCX exam. Each export also creates a UTF-8 answer key beside the DOCX using the name `<exam-name>_ANSWERKEY.txt`.
 
 ## Setup
 

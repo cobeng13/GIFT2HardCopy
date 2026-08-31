@@ -131,9 +131,13 @@ class MainWindow(QMainWindow):
             path, _ = QFileDialog.getSaveFileName(self, "Save exam", filter="Word documents (*.docx)")
             if not path: return
             if not path.lower().endswith(".docx"): path += ".docx"
-            generate_exam(template, Path(path), self.metadata(), questions)
-            self.status.setText(f"Created {path}")
-            QMessageBox.information(self, "Exam Formatter", "Exam created successfully.")
+            key_path = generate_exam(template, Path(path), self.metadata(), questions)
+            self.status.setText(f"Created exam and answer key: {path}")
+            QMessageBox.information(
+                self,
+                "Exam Formatter",
+                f"Exam created successfully.\n\nDOCX: {path}\nAnswer key: {key_path}",
+            )
         except Exception as error:
             self.show_error(str(error))
 
