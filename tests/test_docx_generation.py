@@ -40,3 +40,26 @@ def test_missing_questions_placeholder(tmp_path):
         generate_exam(template, output, {}, parse_gift(GIFT))
     assert not output.exists()
     assert not answer_key_path(output).exists()
+
+def test_placeholder_replacement_preserves_program_regular_weight(tmp_path):
+    template = tmp_path / "template.docx"
+    make_template(template)
+    document = Document(template)
+    paragraph = document.add_paragraph()
+    chair = paragraph.add_run("{{DEPARTMENT_CHAIR}}")
+    chair.bold = True
+    program = paragraph.add_run("\nDepartment Chair, {{PROGRAM}}")
+    document.save(template)
+
+    output = tmp_path / "output.docx"
+    generate_exam(template, output, {
+        "DEPARTMENT_CHAIR": "Mrs. Example, MA",
+        "PROGRAM": "Biology major in Medical Biology",
+    }, parse_gift(GIFT))
+
+    generated = Document(output)
+    signature = next(p for p in generated.paragraphs if "Department Chair," in p.text)
+    chair_run = next(run for run in signature.runs if "Mrs. Example" in run.text)
+    program_run = next(run for run in signature.runs if "Biology major" in run.text)
+    assert chair_run.bold is True
+    assert program_run.bold is not True

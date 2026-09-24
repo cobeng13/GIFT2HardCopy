@@ -2,6 +2,7 @@ from io import BytesIO
 from zipfile import ZipFile
 
 from fastapi.testclient import TestClient
+from docx import Document
 
 from exam_formatter.web.app import app
 
@@ -38,7 +39,8 @@ def test_uploaded_files_are_concatenated_in_order():
 
 def test_valid_gift_generates_zip_with_docx_and_answer_key():
     response = client.post("/generate", data={"gift_text": GIFT, "course": "PHARMACOLOGY",
-                                               "exam_name": "Preliminary Examination", "exam_date": "2026-09-24"})
+                                               "exam_name": "Preliminary Examination", "exam_date": "2026-09-24",
+                                               "faculty_member": "Dr. Faculty Example", "program": "Pharmacy"})
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/zip"
     assert response.headers["content-disposition"].endswith('filename="PHARMACOLOGY_Preliminary_Examination.zip"')
@@ -47,3 +49,9 @@ def test_valid_gift_generates_zip_with_docx_and_answer_key():
             "PHARMACOLOGY_Preliminary_Examination.docx",
             "PHARMACOLOGY_Preliminary_Examination_ANSWERKEY.txt",
         }
+        document = Document(BytesIO(archive.read("PHARMACOLOGY_Preliminary_Examination.docx")))
+        rendered_text = "\n".join(paragraph.text for paragraph in document.paragraphs)
+        assert "Dr. Faculty Example" in rendered_text
+        assert "Mr. Aaron Dell A. Cobeng, RPh, MA ELM" in rendered_text
+        assert "Pharmacy" in rendered_text
+        assert "Diploma in Pharmacy Assisting Leading to\nBachelor of Science in Pharmacy" in rendered_text

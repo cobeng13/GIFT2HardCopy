@@ -2,10 +2,11 @@ from pathlib import Path
 from PySide6.QtCore import QDate
 from PySide6.QtWidgets import (QComboBox, QDateEdit, QDialog, QDialogButtonBox,
     QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QMainWindow,
-    QMessageBox, QPushButton, QTextEdit, QVBoxLayout, QWidget)
+    QMessageBox, QPushButton, QPlainTextEdit, QTextEdit, QVBoxLayout, QWidget)
 from exam_formatter.docx_engine.generator import generate_exam
 from exam_formatter.gift.exceptions import GiftParseError
 from exam_formatter.gift.parser import parse_gift
+from exam_formatter.programs import PROGRAM_CHAIRS, PROGRAM_LONG_NAMES
 
 
 class GiftFileDialog(QDialog):
@@ -78,6 +79,15 @@ class MainWindow(QMainWindow):
         self.exam_name = QComboBox()
         self.exam_name.addItems(("Preliminary Examination", "Midterm Examination", "Final Examination"))
         self.course = QLineEdit()
+        self.faculty_member = QLineEdit()
+        self.program = QComboBox()
+        self.program.addItem("Select a program", "")
+        for program in PROGRAM_CHAIRS:
+            self.program.addItem(program, program)
+        self.program_long_name = QPlainTextEdit()
+        self.program_long_name.setReadOnly(True)
+        self.program_long_name.setMaximumHeight(58)
+        self.program.currentIndexChanged.connect(self.update_program_long_name)
         self.semester = QComboBox()
         self.semester.addItems(("1st Semester", "2nd Semester", "Term Break"))
         self.academic_year = QLineEdit()
@@ -86,6 +96,9 @@ class MainWindow(QMainWindow):
         self.date.setDisplayFormat("MMMM d, yyyy")
         form.addRow("Exam Name:", self.exam_name)
         form.addRow("Course:", self.course)
+        form.addRow("Faculty Member:", self.faculty_member)
+        form.addRow("Program / Department Chair:", self.program)
+        form.addRow("Program Long Name:", self.program_long_name)
         form.addRow("Semester:", self.semester)
         form.addRow("Academic Year:", self.academic_year)
         form.addRow("Date:", self.date)
@@ -145,10 +158,18 @@ class MainWindow(QMainWindow):
         return {
             "EXAM_NAME": self.exam_name.currentText(),
             "COURSE": self.course.text(),
+            "FACULTY_MEMBER": self.faculty_member.text(),
+            "PROGRAM": self.program.currentData() or "",
+            "DEPARTMENT_CHAIR": PROGRAM_CHAIRS.get(self.program.currentData() or "", ""),
+            "PROGRAM_LONG_NAME": PROGRAM_LONG_NAMES.get(self.program.currentData() or "", ""),
             "SEMESTER": self.semester.currentText(),
             "ACADEMIC_YEAR": self.academic_year.text(),
             "DATE": self.date.date().toString("MMMM d, yyyy"),
         }
+
+    def update_program_long_name(self, _index: int = -1) -> None:
+        program = self.program.currentData() or ""
+        self.program_long_name.setPlainText(PROGRAM_LONG_NAMES.get(program, ""))
 
     def show_error(self, message: str) -> None:
         self.status.setText(f"Error: {message}")

@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 from exam_formatter.docx_engine.generator import generate_exam
 from exam_formatter.gift.parser import parse_gift
+from exam_formatter.programs import PROGRAM_CHAIRS, PROGRAM_LONG_NAMES
 
 
 def main() -> None:
@@ -14,8 +15,21 @@ def main() -> None:
     parser.add_argument("--semester", default="")
     parser.add_argument("--academic-year", default="")
     parser.add_argument("--date", default="")
+    parser.add_argument("--faculty-member", default="")
+    parser.add_argument("--program", choices=("", *PROGRAM_CHAIRS), default="")
     args = parser.parse_args()
-    key_path = generate_exam(args.template, args.output, {"EXAM_NAME": args.exam_name, "COURSE": args.course, "SEMESTER": args.semester, "ACADEMIC_YEAR": args.academic_year, "DATE": args.date}, parse_gift(args.gift.read_text(encoding="utf-8-sig")))
+    metadata = {
+        "EXAM_NAME": args.exam_name,
+        "COURSE": args.course,
+        "SEMESTER": args.semester,
+        "ACADEMIC_YEAR": args.academic_year,
+        "DATE": args.date,
+        "FACULTY_MEMBER": args.faculty_member,
+        "PROGRAM": args.program,
+        "DEPARTMENT_CHAIR": PROGRAM_CHAIRS.get(args.program, ""),
+        "PROGRAM_LONG_NAME": PROGRAM_LONG_NAMES.get(args.program, ""),
+    }
+    key_path = generate_exam(args.template, args.output, metadata, parse_gift(args.gift.read_text(encoding="utf-8-sig")))
     print(f"Created: {args.output}")
     print(f"Answer key: {key_path}")
 

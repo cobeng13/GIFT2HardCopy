@@ -7,6 +7,14 @@ Convert supported Moodle GIFT questions into a master-template-derived CAMP Majo
 The Windows desktop interface also supports importing Moodle XML question files.
 
 ```bash
+conda env create -n exam-formatter-clean -f environment.yml
+conda activate exam-formatter-clean
+python -m exam_formatter.app
+```
+
+The Conda environment uses the project-pinned Python 3.12 and keeps Qt out of the shared `base` environment. If you use another isolated Python environment, install and launch with that same interpreter:
+
+```bash
 python -m pip install -r requirements-desktop.txt
 python -m exam_formatter.app
 ```
@@ -45,7 +53,9 @@ Open `http://localhost:8000` after starting the container.
 
 ## Template contract
 
-The master template must contain `{{QUESTIONS}}` as a standalone body paragraph and the styles `Exam Question`, `Exam Choice`, and `Exam Choice Compact`. `Exam Question` must carry the template's real Word automatic-numbering definition. Metadata placeholders supported anywhere in paragraphs, table cells, headers, and footers are `{{EXAM_NAME}}`, `{{COURSE}}`, `{{SEMESTER}}`, `{{ACADEMIC_YEAR}}`, and `{{DATE}}`.
+The master template must contain `{{QUESTIONS}}` as a standalone body paragraph and the styles `Exam Question`, `Exam Choice`, and `Exam Choice Compact`. `Exam Question` must carry the template's real Word automatic-numbering definition. Metadata placeholders supported anywhere in paragraphs, table cells, headers, and footers are `{{EXAM_NAME}}`, `{{COURSE}}`, `{{SEMESTER}}`, `{{ACADEMIC_YEAR}}`, `{{DATE}}`, `{{FACULTY_MEMBER}}`, `{{DEPARTMENT_CHAIR}}`, `{{PROGRAM}}`, and `{{PROGRAM_LONG_NAME}}`. The program selector fills the matching department chair and full program title from the fixed program list in the web and desktop forms.
+
+The `generate_test.py` command-line utility accepts `--faculty-member` and `--program` to populate the new placeholders. It does not launch a graphical interface.
 
 ## Supported GIFT
 

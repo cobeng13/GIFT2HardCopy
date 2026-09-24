@@ -14,6 +14,9 @@
       <section class="metadata">
         <label>Exam Name<select name="exam_name"><option {% if exam_name == 'Preliminary Examination' %}selected{% endif %}>Preliminary Examination</option><option {% if exam_name == 'Midterm Examination' %}selected{% endif %}>Midterm Examination</option><option {% if exam_name == 'Final Examination' %}selected{% endif %}>Final Examination</option></select></label>
         <label>Course<input name="course" value="{{ course }}" required></label>
+        <label>Faculty Member<input name="faculty_member" value="{{ faculty_member }}"></label>
+        <label>Program / Department Chair<select name="program"><option value="">Select a program</option>{% for name, chair in program_chairs.items() %}<option value="{{ name }}" {% if program == name %}selected{% endif %}>{{ name }} — {{ chair }}</option>{% endfor %}</select></label>
+        <label>Program Long Name<textarea id="program-long-name" rows="2" readonly>{{ program_long_names.get(program, '') }}</textarea></label>
         <label>Semester<select name="semester"><option {% if semester == '1st Semester' %}selected{% endif %}>1st Semester</option><option {% if semester == '2nd Semester' %}selected{% endif %}>2nd Semester</option><option {% if semester == 'Term Break' %}selected{% endif %}>Term Break</option></select></label>
         <label>Academic Year<input name="academic_year" value="{{ academic_year }}" placeholder="2026-2027"></label>
         <label>Date<input type="date" name="exam_date" value="{{ exam_date }}"></label>
@@ -24,5 +27,13 @@
       <div class="actions"><button formaction="/validate" formnovalidate class="secondary">Validate GIFT</button><button formaction="/generate">Generate Exam</button></div>
     </form>
   </main>
+  <script>
+    const programTitles = {{ program_long_names | tojson }};
+    const programSelect = document.querySelector('select[name="program"]');
+    const programTitle = document.getElementById('program-long-name');
+    programSelect.addEventListener('change', () => {
+      programTitle.value = programTitles[programSelect.value] || '';
+    });
+  </script>
 </body>
 </html>
