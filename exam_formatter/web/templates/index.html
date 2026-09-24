@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GIFT2HardCopy</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body>
+  <main class="card">
+    <header><h1>GIFT2HardCopy</h1><p>Convert Moodle GIFT questions into the CAMP Major Exam DOCX format.</p></header>
+    {% if message %}<div class="message {% if is_error %}error{% else %}success{% endif %}" role="status">{{ message }}</div>{% endif %}
+    <form method="post" enctype="multipart/form-data">
+      <section class="metadata">
+        <label>Exam Name<select name="exam_name"><option {% if exam_name == 'Preliminary Examination' %}selected{% endif %}>Preliminary Examination</option><option {% if exam_name == 'Midterm Examination' %}selected{% endif %}>Midterm Examination</option><option {% if exam_name == 'Final Examination' %}selected{% endif %}>Final Examination</option></select></label>
+        <label>Course<input name="course" value="{{ course }}" required></label>
+        <label>Semester<select name="semester"><option {% if semester == '1st Semester' %}selected{% endif %}>1st Semester</option><option {% if semester == '2nd Semester' %}selected{% endif %}>2nd Semester</option><option {% if semester == 'Term Break' %}selected{% endif %}>Term Break</option></select></label>
+        <label>Academic Year<input name="academic_year" value="{{ academic_year }}" placeholder="2026-2027"></label>
+        <label>Date<input type="date" name="exam_date" value="{{ exam_date }}"></label>
+      </section>
+      <label class="block">GIFT Questions<textarea name="gift_text" rows="16" placeholder="Paste GIFT questions here..."></textarea></label>
+      <label class="block upload">Or upload GIFT file(s) <input type="file" name="files" accept=".gift,.txt" multiple></label>
+      <p class="hint">Pasted text is followed by uploaded files in their selected order. Combined input limit: 5 MB. Files must be UTF-8 or UTF-8-SIG.</p>
+      <div class="actions"><button formaction="/validate" formnovalidate class="secondary">Validate GIFT</button><button formaction="/generate">Generate Exam</button></div>
+    </form>
+  </main>
+</body>
+</html>
