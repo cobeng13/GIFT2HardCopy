@@ -6,7 +6,7 @@ PROGRAM_CHAIRS = {
     "Radiologic Technology": "Mr. Albert Christian S. Penid, RRT, MA ELM",
     "Biology major in Medical Biology": "Mrs. Roxane B. Aguba, MAEd",
     "Physical Therapy": "Mr. Raymond M. Tosoc, PTRP, MPT",
-    "Psychology": "Dr. Edielyn G. Guttierez",
+    "Psychology": "Dr. Edielyn G. Gutierrez",
 }
 
 PROGRAM_LONG_NAMES = {
