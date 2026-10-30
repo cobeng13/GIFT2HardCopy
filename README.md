@@ -73,3 +73,20 @@ pytest
 python tools/inspect_template.py 'Prelims DDS.docx'
 python generate_test.py --template 'Prelims DDS.docx' --gift samples/sample.gift --output output/test_exam.docx
 ```
+
+## Aiken import and automatic detection
+
+Pasted text and each uploaded `.txt` or `.gift` file are detected independently as GIFT or Aiken. You can combine GIFT and Aiken files in one request; pasted questions come first, then uploaded files in upload order. Each input must contain one format. UTF-8 and UTF-8-SIG are supported. Desktop text import and `generate_test.py --gift input.txt` use the same detection.
+
+Aiken follows [Moodle’s format](https://docs.moodle.org/502/en/Aiken_format): one question line, uppercase sequential answer labels with a period or closing parenthesis followed by a space, and an uppercase `ANSWER: X` line immediately after the last option. Separate questions with blank lines. This application supports exactly four options (A–D), even though Moodle Aiken allows more. No manual format selector is needed.
+
+```text
+Which city is in Japan?
+A. Manila
+B. Tokyo
+C. Paris
+D. Rome
+ANSWER: B
+```
+
+Invalid keys, missing answers, out-of-order options, and unsupported choice counts stop the import with a readable error. Existing GIFT and labeled MCQ support still uses the original GIFT parser. The DOCX generator and template contract are unchanged.

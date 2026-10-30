@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QComboBox, QDateEdit, QDialog, QDialogButtonBox,
     QMessageBox, QPushButton, QPlainTextEdit, QTextEdit, QVBoxLayout, QWidget)
 from exam_formatter.docx_engine.generator import generate_exam
 from exam_formatter.gift.exceptions import GiftParseError
-from exam_formatter.gift.parser import parse_gift
+from exam_formatter.question_input import parse_questions
 from exam_formatter.programs import PROGRAM_CHAIRS, PROGRAM_LONG_NAMES
 
 
@@ -17,7 +17,7 @@ class GiftFileDialog(QDialog):
         self.setWindowTitle("Load GIFT Files")
         self.resize(680, 220)
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Choose one or more GIFT files in question order."))
+        layout.addWidget(QLabel("Choose GIFT or Aiken TXT files in question order."))
         self.file_rows = QVBoxLayout()
         layout.addLayout(self.file_rows)
         self.path_inputs: list[QLineEdit] = []
@@ -103,11 +103,11 @@ class MainWindow(QMainWindow):
         form.addRow("Academic Year:", self.academic_year)
         form.addRow("Date:", self.date)
         layout.addLayout(form)
-        layout.addWidget(QLabel("GIFT Questions:"))
+        layout.addWidget(QLabel("GIFT or Aiken Questions:"))
         self.gift_text = QTextEdit(); layout.addWidget(self.gift_text, 1)
         buttons = QHBoxLayout()
         load = QPushButton("Load GIFT File(s)"); load.clicked.connect(self.load_gift)
-        validate = QPushButton("Validate GIFT"); validate.clicked.connect(self.validate_gift)
+        validate = QPushButton("Validate Questions"); validate.clicked.connect(self.validate_gift)
         generate = QPushButton("Generate Exam"); generate.clicked.connect(self.generate)
         for button in (load, validate, generate): buttons.addWidget(button)
         layout.addLayout(buttons)
@@ -128,8 +128,8 @@ class MainWindow(QMainWindow):
                 self.show_error(f"Could not read selected GIFT file: {error}")
 
     def parsed_questions(self):
-        questions = parse_gift(self.gift_text.toPlainText())
-        self.status.setText(f"Valid GIFT: {len(questions)} question(s).")
+        questions = parse_questions(self.gift_text.toPlainText())
+        self.status.setText(f"Valid questions: {len(questions)} question(s).")
         return questions
 
     def validate_gift(self) -> None:

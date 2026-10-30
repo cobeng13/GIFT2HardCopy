@@ -8,7 +8,7 @@
 </head>
 <body>
   <main class="card">
-    <header><h1>GIFT2HardCopy</h1><p>Convert Moodle GIFT questions into the CAMP Major Exam DOCX format.</p></header>
+    <header><h1>GIFT2HardCopy</h1><p>Convert Moodle GIFT or Aiken questions into the CAMP Major Exam DOCX format.</p></header>
     {% if message %}<div class="message {% if is_error %}error{% else %}success{% endif %}" role="status">{{ message }}</div>{% endif %}
     <form method="post" enctype="multipart/form-data">
       <section class="metadata">
@@ -21,10 +21,10 @@
         <label>Academic Year<input name="academic_year" value="{{ academic_year }}" placeholder="2026-2027"></label>
         <label>Date<input type="date" name="exam_date" value="{{ exam_date }}"></label>
       </section>
-      <label class="block">GIFT Questions<textarea name="gift_text" rows="16" placeholder="Paste GIFT questions here..."></textarea></label>
-      <label class="block upload">Or upload GIFT file(s) <input type="file" name="files" accept=".gift,.txt" multiple></label>
-      <p class="hint">Pasted text is followed by uploaded files in their selected order. Combined input limit: 5 MB. Files must be UTF-8 or UTF-8-SIG.</p>
-      <div class="actions"><button formaction="/validate" formnovalidate class="secondary">Validate GIFT</button><button formaction="/generate">Generate Exam</button></div>
+      <label class="block">GIFT or Aiken Questions<textarea name="gift_text" rows="16" placeholder="Paste GIFT or Aiken questions here..."></textarea></label>
+      <label class="block upload">Or upload GIFT / Aiken file(s) <input type="file" name="files" accept=".gift,.txt" multiple></label>
+      <p class="hint">GIFT and Aiken are detected automatically for each input. Use .txt for Aiken. Pasted text is followed by uploaded files in their selected order. Combined input limit: 5 MB. Files must be UTF-8 or UTF-8-SIG.</p>
+      <div class="actions"><button formaction="/validate" formnovalidate class="secondary">Validate Questions</button><button formaction="/generate">Generate Exam</button></div>
     </form>
   </main>
   <script>

@@ -8,6 +8,34 @@ from exam_formatter.web.app import app
 
 client = TestClient(app)
 GIFT = "Question one? {\n=a\n~b\n~c\n~d\n}"
+AIKEN = "Aiken question?\nA) One\nB) Two\nC) Three\nD) Four\nANSWER: C"
+
+
+def test_aiken_paste_validates_and_generates_zip():
+    response = client.post("/validate", data={"gift_text": AIKEN})
+    assert "Valid questions: 1" in response.text
+    response = client.post("/generate", data={"gift_text": AIKEN})
+    assert response.headers["content-type"] == "application/zip"
+    with ZipFile(BytesIO(response.content)) as archive:
+        key = next(name for name in archive.namelist() if name.endswith("_ANSWERKEY.txt"))
+        assert archive.read(key).decode().splitlines() == ["ANSWER KEY", "", "1. C"]
+
+
+def test_mixed_format_uploads_keep_order_and_bom():
+    response = client.post("/generate", data={"gift_text": GIFT}, files=[
+        ("files", ("aiken.txt", AIKEN.encode("utf-8-sig"), "text/plain")),
+        ("files", ("gift.gift", GIFT.encode(), "text/plain")),
+    ])
+    assert response.headers["content-type"] == "application/zip"
+    with ZipFile(BytesIO(response.content)) as archive:
+        key = next(name for name in archive.namelist() if name.endswith("_ANSWERKEY.txt"))
+        assert archive.read(key).decode().splitlines() == ["ANSWER KEY", "", "1. A", "2. C", "3. A"]
+
+
+def test_invalid_aiken_returns_readable_error():
+    response = client.post("/validate", data={"gift_text": AIKEN.replace("ANSWER: C", "ANSWER: Z")})
+    assert "existing choice" in response.text
+    assert "Traceback" not in response.text
 
 
 def test_homepage_loads():
@@ -19,13 +47,13 @@ def test_homepage_loads():
 def test_valid_gift_can_be_validated():
     response = client.post("/validate", data={"gift_text": GIFT})
     assert response.status_code == 200
-    assert "Valid GIFT: 1 questions detected." in response.text
+    assert "Valid questions: 1 questions detected." in response.text
 
 
 def test_invalid_gift_shows_readable_error_without_traceback():
     response = client.post("/validate", data={"gift_text": "not a question"})
     assert response.status_code == 200
-    assert "No supported GIFT" in response.text
+    assert "expected exactly 4 choices" in response.text
     assert "Traceback" not in response.text
 
 

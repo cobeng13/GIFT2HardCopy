@@ -1,12 +1,12 @@
 import argparse
 from pathlib import Path
 from exam_formatter.docx_engine.generator import generate_exam
-from exam_formatter.gift.parser import parse_gift
+from exam_formatter.question_input import parse_questions
 from exam_formatter.programs import PROGRAM_CHAIRS, PROGRAM_LONG_NAMES
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate a DOCX exam from GIFT.")
+    parser = argparse.ArgumentParser(description="Generate a DOCX exam from GIFT or Aiken.")
     parser.add_argument("--template", required=True, type=Path)
     parser.add_argument("--gift", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
@@ -29,7 +29,7 @@ def main() -> None:
         "DEPARTMENT_CHAIR": PROGRAM_CHAIRS.get(args.program, ""),
         "PROGRAM_LONG_NAME": PROGRAM_LONG_NAMES.get(args.program, ""),
     }
-    key_path = generate_exam(args.template, args.output, metadata, parse_gift(args.gift.read_text(encoding="utf-8-sig")))
+    key_path = generate_exam(args.template, args.output, metadata, parse_questions(args.gift.read_text(encoding="utf-8-sig")))
     print(f"Created: {args.output}")
     print(f"Answer key: {key_path}")
 

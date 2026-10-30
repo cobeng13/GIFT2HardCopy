@@ -14,7 +14,8 @@ from starlette.background import BackgroundTask
 
 from exam_formatter.docx_engine.generator import generate_exam
 from exam_formatter.gift.exceptions import GiftParseError
-from exam_formatter.gift.parser import parse_gift
+from exam_formatter.gift.models import Question
+from exam_formatter.question_input import parse_questions
 from exam_formatter.programs import PROGRAM_CHAIRS, PROGRAM_LONG_NAMES
 
 WEB_DIR = Path(__file__).resolve().parent
@@ -44,7 +45,7 @@ def _safe_filename(value: str, fallback: str) -> str:
     return cleaned or fallback
 
 
-async def _combined_gift(text: str, uploads: list[UploadFile]) -> str:
+async def _input_questions(text: str, uploads: list[UploadFile]) -> list[Question]:
     parts = [text] if text.strip() else []
     total = len(text.encode("utf-8"))
     for upload in uploads:
@@ -55,16 +56,16 @@ async def _combined_gift(text: str, uploads: list[UploadFile]) -> str:
         content = await upload.read(MAX_INPUT_BYTES + 1)
         total += len(content)
         if total > MAX_INPUT_BYTES:
-            raise ValueError("GIFT input is too large. The combined limit is 5 MB.")
+            raise ValueError("Question input is too large. The combined limit is 5 MB.")
         try:
             parts.append(content.decode("utf-8-sig"))
         except UnicodeDecodeError as error:
             raise ValueError(f"{Path(upload.filename).name} must be UTF-8 encoded.") from error
     if total > MAX_INPUT_BYTES:
-        raise ValueError("GIFT input is too large. The combined limit is 5 MB.")
+        raise ValueError("Question input is too large. The combined limit is 5 MB.")
     if not parts:
-        raise ValueError("Paste GIFT questions or upload at least one .gift or .txt file.")
-    return "\n\n".join(parts)
+        raise ValueError("Paste GIFT or Aiken questions or upload at least one .gift or .txt file.")
+    return [question for part in parts for question in parse_questions(part)]
 
 
 def _render(request: Request, *, message: str = "", error: bool = False,
@@ -99,13 +100,12 @@ async def validate_gift(
     try:
         if program and program not in PROGRAM_CHAIRS:
             raise ValueError("Select a valid program.")
-        source = await _combined_gift(gift_text, files)
-        questions = parse_gift(source)
-        return _render(request, message=f"Valid GIFT: {len(questions)} questions detected.", exam_name=exam_name,
+        questions = await _input_questions(gift_text, files)
+        return _render(request, message=f"Valid questions: {len(questions)} questions detected.", exam_name=exam_name,
                        course=course, semester=semester, academic_year=academic_year, exam_date=exam_date,
                        faculty_member=faculty_member, program=program)
     except Exception as error:
-        message = str(error) if isinstance(error, (ValueError, GiftParseError)) else "GIFT validation failed. Check the input and try again."
+        message = str(error) if isinstance(error, (ValueError, GiftParseError)) else "Question validation failed. Check the input and try again."
         return _render(request, message=message, error=True, exam_name=exam_name, course=course,
                        semester=semester, academic_year=academic_year, exam_date=exam_date,
                        faculty_member=faculty_member, program=program)
@@ -129,8 +129,7 @@ async def generate(
 ):
     temp_dir = None
     try:
-        source = await _combined_gift(gift_text, files)
-        questions = parse_gift(source)
+        questions = await _input_questions(gift_text, files)
         if program and program not in PROGRAM_CHAIRS:
             raise ValueError("Select a valid program.")
         if not MASTER_TEMPLATE.is_file():
