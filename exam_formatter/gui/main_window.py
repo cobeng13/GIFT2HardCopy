@@ -66,7 +66,7 @@ class GiftFileDialog(QDialog):
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("Exam Formatter")
+        self.setWindowTitle("LMStoHardCopy")
         self.resize(820, 680)
         root = QWidget()
         layout = QVBoxLayout(root)
@@ -148,7 +148,7 @@ class MainWindow(QMainWindow):
             self.status.setText(f"Created exam and answer key: {path}")
             QMessageBox.information(
                 self,
-                "Exam Formatter",
+                "LMStoHardCopy",
                 f"Exam created successfully.\n\nDOCX: {path}\nAnswer key: {key_path}",
             )
         except Exception as error:
@@ -173,4 +173,4 @@ class MainWindow(QMainWindow):
 
     def show_error(self, message: str) -> None:
         self.status.setText(f"Error: {message}")
-        QMessageBox.critical(self, "Exam Formatter", message)
+        QMessageBox.critical(self, "LMStoHardCopy", message)

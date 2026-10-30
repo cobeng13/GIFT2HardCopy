@@ -23,7 +23,7 @@ MASTER_TEMPLATE = Path(__file__).resolve().parents[2] / "templates" / "master_ex
 MAX_INPUT_BYTES = 5 * 1024 * 1024
 ALLOWED_SUFFIXES = {".gift", ".txt"}
 
-app = FastAPI(title="GIFT2HardCopy")
+app = FastAPI(title="LMStoHardCopy")
 app.mount("/static", StaticFiles(directory=WEB_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=WEB_DIR / "templates")
 

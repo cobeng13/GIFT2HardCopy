@@ -1,4 +1,4 @@
-# GIFT2HardCopy
+# LMStoHardCopy
 
 Convert supported Moodle GIFT questions into a master-template-derived CAMP Major Exam DOCX and answer key. The desktop and web interfaces share the same parser and DOCX generation engine.
 

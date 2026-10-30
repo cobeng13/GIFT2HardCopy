@@ -41,7 +41,7 @@ def test_invalid_aiken_returns_readable_error():
 def test_homepage_loads():
     response = client.get("/")
     assert response.status_code == 200
-    assert "GIFT2HardCopy" in response.text
+    assert "LMStoHardCopy" in response.text
 
 
 def test_valid_gift_can_be_validated():
