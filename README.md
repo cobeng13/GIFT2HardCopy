@@ -4,7 +4,7 @@ Convert supported Moodle GIFT questions into a master-template-derived CAMP Majo
 
 ## Desktop version
 
-The Windows desktop interface also supports importing Moodle XML question files.
+The desktop and web interfaces support importing GIFT, Aiken, and Moodle XML question files.
 
 ```bash
 conda env create -n exam-formatter-clean -f environment.yml
@@ -23,7 +23,7 @@ The existing Conda environment is also defined in `environment.yml`. Install `re
 
 ## Web version
 
-The web form accepts pasted GIFT and multiple `.gift`/`.txt` files. When both are supplied, pasted text is followed by uploaded files in their selected order, separated by blank lines. Uploads must be UTF-8 or UTF-8-SIG; the combined input limit is 5 MB. The web interface uses the fixed server template `templates/master_exam.docx`.
+The web form accepts pasted GIFT, Aiken, or Moodle XML and multiple `.gift`/`.txt`/`.xml` files. When both are supplied, pasted text is followed by uploaded files in their selected order, separated by blank lines. Uploads must be UTF-8 or UTF-8-SIG; the combined input limit is 5 MB. The web interface uses the fixed server template `templates/master_exam.docx`.
 
 Development:
 
@@ -63,7 +63,7 @@ Only four-choice, single-correct multiple-choice questions are supported. Option
 
 ## Supported Moodle XML
 
-The desktop file loader accepts `.gift`, `.txt`, and `.xml` files in any sequence. Moodle XML support is limited to UTF-8, text-only `multichoice` questions with `<single>true</single>`, exactly four answers, and exactly one `fraction="100"` answer. Basic HTML is converted to plain text; unsupported content stops import with an error.
+The file loader accepts `.gift`, `.txt`, and `.xml` files in any sequence. Moodle XML support is limited to UTF-8, text-only `multichoice` questions with `<single>true</single>`, exactly four answers, and exactly one `fraction="100"` answer. Basic HTML is converted to plain text; unsupported content stops import with an error.
 
 ## Tests and utilities
 
@@ -76,9 +76,9 @@ python generate_test.py --template 'Prelims DDS.docx' --gift samples/sample.gift
 
 ## Aiken import and automatic detection
 
-Pasted text and each uploaded `.txt` or `.gift` file are detected independently as GIFT or Aiken. You can combine GIFT and Aiken files in one request; pasted questions come first, then uploaded files in upload order. Each input must contain one format. UTF-8 and UTF-8-SIG are supported. Desktop text import and `generate_test.py --gift input.txt` use the same detection.
+Pasted text and each uploaded `.txt`, `.gift`, or `.xml` file are detected independently as GIFT, Aiken, or Moodle XML. You can combine GIFT, Aiken, and Moodle XML files in one request; pasted questions come first, then uploaded files in upload order. Each input must contain one format. UTF-8 and UTF-8-SIG are supported. Desktop text import and `generate_test.py --gift input.txt` use the same detection.
 
-Aiken follows [Moodle’s format](https://docs.moodle.org/502/en/Aiken_format): one question line, uppercase sequential answer labels with a period or closing parenthesis followed by a space, and an uppercase `ANSWER: X` line immediately after the last option. Separate questions with blank lines. This application supports exactly four options (A–D), even though Moodle Aiken allows more. No manual format selector is needed.
+Aiken follows [Moodleâ€™s format](https://docs.moodle.org/502/en/Aiken_format): one question line, uppercase sequential answer labels with a period or closing parenthesis followed by a space, and an uppercase `ANSWER: X` line immediately after the last option. Separate questions with blank lines. This application supports exactly four options (Aâ€“D), even though Moodle Aiken allows more. No manual format selector is needed.
 
 ```text
 Which city is in Japan?
@@ -90,3 +90,17 @@ ANSWER: B
 ```
 
 Invalid keys, missing answers, out-of-order options, and unsupported choice counts stop the import with a readable error. Existing GIFT and labeled MCQ support still uses the original GIFT parser. The DOCX generator and template contract are unchanged.
+
+## Moodle LMS exports
+
+Moodle GIFT exports with `[html]` are supported: paragraph tags, line breaks, lists, entities, and basic inline markup are converted to plain text in question stems and answer choices. Category lines, comments, and feedback are omitted. Existing GIFT escaping and answer keys are preserved.
+
+Moodle XML is supported through `.xml` uploads or pasted `<quiz>` documents. Each input is detected independently, so GIFT, Aiken, and XML files can be combined in order. Category records are skipped. Only single-answer multiple-choice questions with exactly four answers and one 100% key are accepted. Question and answer order are preserved, even if the export requests shuffling. Feedback is not printed.
+
+Images, embedded files, tables, equations, unsupported question types, and partial credit produce a readable error rather than being silently discarded. DTDs and entity declarations are rejected; external XML resources are not loaded. Markdown remains unsupported. Basic HTML formatting is flattened to text, not reproduced as Word rich text.
+
+CLI example (the older `--gift` flag remains supported):
+
+```bash
+python generate_test.py --template templates/master_exam.docx --questions questions.xml --output output/exam.docx
+```

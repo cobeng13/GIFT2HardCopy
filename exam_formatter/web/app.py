@@ -21,7 +21,7 @@ from exam_formatter.programs import PROGRAM_CHAIRS, PROGRAM_LONG_NAMES
 WEB_DIR = Path(__file__).resolve().parent
 MASTER_TEMPLATE = Path(__file__).resolve().parents[2] / "templates" / "master_exam.docx"
 MAX_INPUT_BYTES = 5 * 1024 * 1024
-ALLOWED_SUFFIXES = {".gift", ".txt"}
+ALLOWED_SUFFIXES = {".gift", ".txt", ".xml"}
 
 app = FastAPI(title="LMStoHardCopy")
 app.mount("/static", StaticFiles(directory=WEB_DIR / "static"), name="static")
@@ -46,26 +46,26 @@ def _safe_filename(value: str, fallback: str) -> str:
 
 
 async def _input_questions(text: str, uploads: list[UploadFile]) -> list[Question]:
-    parts = [text] if text.strip() else []
+    parts = [(text, "")] if text.strip() else []
     total = len(text.encode("utf-8"))
     for upload in uploads:
         if not upload.filename:
             continue
         if Path(upload.filename).suffix.lower() not in ALLOWED_SUFFIXES:
-            raise ValueError("Only .gift and .txt files can be uploaded.")
+            raise ValueError("Only .gift, .txt, and .xml files can be uploaded.")
         content = await upload.read(MAX_INPUT_BYTES + 1)
         total += len(content)
         if total > MAX_INPUT_BYTES:
             raise ValueError("Question input is too large. The combined limit is 5 MB.")
         try:
-            parts.append(content.decode("utf-8-sig"))
+            parts.append((content.decode("utf-8-sig"), upload.filename))
         except UnicodeDecodeError as error:
             raise ValueError(f"{Path(upload.filename).name} must be UTF-8 encoded.") from error
     if total > MAX_INPUT_BYTES:
         raise ValueError("Question input is too large. The combined limit is 5 MB.")
     if not parts:
-        raise ValueError("Paste GIFT or Aiken questions or upload at least one .gift or .txt file.")
-    return [question for part in parts for question in parse_questions(part)]
+        raise ValueError("Paste GIFT, Aiken, or Moodle XML questions or upload a .gift, .txt, or .xml file.")
+    return [question for part, filename in parts for question in parse_questions(part, filename=filename)]
 
 
 def _render(request: Request, *, message: str = "", error: bool = False,

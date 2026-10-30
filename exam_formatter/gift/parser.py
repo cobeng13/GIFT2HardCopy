@@ -4,6 +4,7 @@ import re
 
 from .exceptions import GiftParseError
 from .models import Choice, Question
+from exam_formatter.html_text import html_to_text, HtmlContentError
 
 _ESCAPES = {
     "{": "{", "}": "}", "=": "=", "~": "~", "#": "#",
@@ -91,10 +92,11 @@ def _parse_question(number: int, raw_stem: str, raw_answers: str) -> Question:
             raise GiftParseError(f"Question {number}: unterminated GIFT title.")
         title = stem[2:end].strip() or None
         stem = stem[end + 2:].strip()
+    requested_format = "plain"
     format_tag = _FORMAT_TAG.match(stem)
     if format_tag:
         requested_format = format_tag.group(1).lower()
-        if requested_format in {"html", "markdown"}:
+        if requested_format == "markdown":
             raise GiftParseError(
                 f"Question {number}: [{requested_format}] content is not supported; use plain text."
             )
@@ -104,6 +106,14 @@ def _parse_question(number: int, raw_stem: str, raw_answers: str) -> Question:
         raise GiftParseError(f"Question {number}: question stem is empty.")
 
     choices = _parse_answer_block(number, raw_answers)
+    if requested_format == "html":
+        try:
+            stem = html_to_text(stem)
+            choices = [Choice(html_to_text(choice.text), choice.correct) for choice in choices]
+        except HtmlContentError as error:
+            raise GiftParseError(f"Question {number}: {error}") from error
+        if not stem or any(not choice.text for choice in choices):
+            raise GiftParseError(f"Question {number}: HTML question stem and choices must contain text.")
     if len(choices) != 4:
         raise GiftParseError(f"Question {number}: expected exactly 4 choices, found {len(choices)}.")
     correct_count = sum(choice.correct for choice in choices)

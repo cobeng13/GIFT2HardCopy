@@ -4,6 +4,7 @@ import re
 from exam_formatter.gift.exceptions import GiftParseError
 from exam_formatter.gift.models import Choice, Question
 from exam_formatter.gift.parser import parse_gift
+from exam_formatter.moodle_xml.parser import parse_moodle_xml
 
 
 class AikenParseError(GiftParseError):
@@ -56,8 +57,12 @@ def parse_aiken(source: str) -> list[Question]:
     return questions
 
 
-def parse_questions(source: str) -> list[Question]:
+def parse_questions(source: str, *, filename: str = "") -> list[Question]:
     """Auto-detect each input independently; preserve the existing GIFT parser."""
+    if filename.lower().endswith(".xml") or re.match(
+        r"(?:<\?xml\b|<quiz\b|<!DOCTYPE\b|<!--)", source.lstrip("\ufeff \t\r\n"), re.IGNORECASE
+    ):
+        return parse_moodle_xml(source)
     if re.search(r"^\s*ANSWER\s*:", source, re.MULTILINE | re.IGNORECASE) or re.search(
         r"^\s*A\)\s+", source, re.MULTILINE
     ):

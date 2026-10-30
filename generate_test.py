@@ -6,9 +6,9 @@ from exam_formatter.programs import PROGRAM_CHAIRS, PROGRAM_LONG_NAMES
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate a DOCX exam from GIFT or Aiken.")
+    parser = argparse.ArgumentParser(description="Generate a DOCX exam from GIFT, Aiken, or Moodle XML.")
     parser.add_argument("--template", required=True, type=Path)
-    parser.add_argument("--gift", required=True, type=Path)
+    parser.add_argument("--gift", "--questions", dest="gift", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--exam-name", default="")
     parser.add_argument("--course", default="")
@@ -29,7 +29,7 @@ def main() -> None:
         "DEPARTMENT_CHAIR": PROGRAM_CHAIRS.get(args.program, ""),
         "PROGRAM_LONG_NAME": PROGRAM_LONG_NAMES.get(args.program, ""),
     }
-    key_path = generate_exam(args.template, args.output, metadata, parse_questions(args.gift.read_text(encoding="utf-8-sig")))
+    key_path = generate_exam(args.template, args.output, metadata, parse_questions(args.gift.read_text(encoding="utf-8-sig"), filename=args.gift.name))
     print(f"Created: {args.output}")
     print(f"Answer key: {key_path}")
 
